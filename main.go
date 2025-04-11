@@ -16,23 +16,58 @@ type Menu struct {
 }
 
 // intermediary struct for Order, contains a Dish and relevant info
-type OrderDishStruct struct {
-	dish     Dish
-	quantity int
-	status   bool
+type OrderItem struct {
+	dish       Dish
+	itemStatus bool
 }
 
 // struct for an Order, has list of OrderDishes and status for overall order
 // maybe consider a map[name]OrderDish?
 type Order struct {
-	dishes  []OrderDishStruct
-	dishMap map[string]OrderDishStruct
-	status  bool
+	dishes      []OrderItem
+	orderStatus OrderStatus
+}
+
+type OrderStatus int
+
+const (
+	StatusOrdering OrderStatus = iota
+	StatusPending
+	StatusComplete
+)
+
+var orderStatusName = map[OrderStatus]string{
+	StatusOrdering: "ordering",
+	StatusPending:  "pending",
+	StatusComplete: "complete",
+}
+
+func (os OrderStatus) String() string {
+	return orderStatusName[os]
+}
+
+var itemStatusName = map[bool]string{
+	false: "preparing",
+	true:  "ready",
+}
+
+func (o Order) GetOrderStatus() {
+	fmt.Printf("Order status: %s\n", o.orderStatus)
+	if o.orderStatus == StatusPending {
+		for i, item := range o.dishes {
+			fmt.Printf("%d: %s: Item status: %s\n", i+1, item.dish.name, itemStatusName[item.itemStatus])
+		}
+	}
 }
 
 // struct for the Kitchen, has a list of Orders
 type Kitchen struct {
 	orders []Order
+}
+
+// struct to represent a customer?
+type Customer struct {
+	poOrder *Order
 }
 
 // method to add a dish to a menu
@@ -41,9 +76,9 @@ func (m *Menu) AddDish(d Dish) {
 }
 
 // method to add a dish to an order
-func (o *Order) OrderDish(d Dish) bool {
-
-	return false
+func (o *Order) OrderDish(d Dish) {
+	oItem := OrderItem{d, false}
+	o.dishes = append(o.dishes, oItem)
 }
 
 // method to submit order to kitchen
@@ -61,5 +96,10 @@ func main() {
 
 	menu.AddDish(mapoTofu)
 	menu.AddDish(douJiaoMenMian)
+
+	tMenu := make(map[string]float32)
+
+	tMenu["Mapo Tofu"] = 4.75
+	tMenu["Dou Jiao Men Mian"] = 3.50
 
 }
